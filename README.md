@@ -15,7 +15,7 @@ _Diagram added in Phase 10._
 - [x] Phase 0 — Environment & repo
 - [x] Phase 1 — Cloud database & schema
 - [x] Phase 2 — Webhook → respond slice
-- [ ] Phase 3 — Tool calling: query logs
+- [x] Phase 3 — Tool calling: query logs
 - [ ] Phase 4 — RAG: search runbooks
 - [ ] Phase 5 — Git context tool
 - [ ] Phase 6 — Structured output
