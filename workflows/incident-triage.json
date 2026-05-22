@@ -11,25 +11,12 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -432,
-        -112
+        -640,
+        -256
       ],
       "id": "470cbc81-a01a-4612-a711-759f2c833bda",
       "name": "Webhook",
       "webhookId": "fff28daa-2c84-4ebf-aba0-647a56452c74"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Normalize an incoming alert into a stable incident object.\nconst body = $input.first().json.body ?? {};\n\nconst service = String(body.service ?? 'unknown').trim().toLowerCase();\nconst level   = String(body.level   ?? 'ERROR').trim().toUpperCase();\nconst message = String(body.message ?? '').trim();\n\n// A signature is the message with volatile bits (numbers, hex ids, timestamps)\n// stripped, so \"timeout after 30000ms\" and \"timeout after 12ms\" collapse to one.\nconst signature = message\n  .replace(/\\b[0-9a-f]{8,}\\b/gi, 'ID')   // hex ids / trace ids\n  .replace(/\\d+/g, 'N')                  // any run of digits\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .slice(0, 120);\n\nconst incident = {\n  service,\n  level,\n  message,\n  signature,\n  fingerprint: `${service}:${signature}`,\n  received_at: new Date().toISOString(),\n};\n\nreturn [{ json: incident }];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -224,
-        -112
-      ],
-      "id": "fdb9d23a-bd81-4e61-b6dd-e7c702b2d1f4",
-      "name": "Code in JavaScript"
     },
     {
       "parameters": {
@@ -40,27 +27,115 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        -16,
-        -112
+        256,
+        -256
       ],
       "id": "d9235c3f-2b86-4e7b-a22e-41655720d0f3",
       "name": "Respond to Webhook"
     },
     {
       "parameters": {
-        "content": "## in bash\ncurl -X POST http://localhost:5678/webhook-test/incident -H \"Content-Type: application/json\" -d \"{\\\"service\\\":\\\"checkout-api\\\",\\\"level\\\":\\\"error\\\",\\\"message\\\":\\\"PaymentGateway timeout after 30000ms\\\"}\"\n##out put should be like:\n#\n{\n  \"service\": \"checkout-api\",\n  \"level\": \"ERROR\",\n  \"message\": \"PaymentGateway timeout after 30000ms\",\n  \"signature\": \"PaymentGateway timeout after Nms\",\n  \"fingerprint\": \"checkout-api:PaymentGateway timeout after Nms\",\n  \"received_at\": \"2026-05-22T...\"\n}\n",
-        "height": 304,
-        "width": 640,
-        "color": 3
+        "promptType": "define",
+        "text": "=={{ \"An alert fired. Investigate it.\\n\\nIncident:\\n- service: \" + $json.service + \"\\n- level: \" + $json.level + \"\\n- message: \" + $json.message + \"\\n- fingerprint: \" + $json.fingerprint }}",
+        "options": {
+          "systemMessage": "You are an AIOps incident-triage agent. When an alert fires, investigate before concluding. You have a tool to query the application logs database. Use it to find recent log entries for the affected service, look for ERROR/FATAL lines and patterns near the time of the alert. Base your reasoning only on data you retrieve. If the logs do not explain the issue, say so. Be concise and specific."
+        }
       },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
       "position": [
-        -432,
-        96
+        -192,
+        -256
       ],
-      "id": "cd9a3e7b-e97e-49e6-bfe3-70b3ccbcdda3",
-      "name": "Sticky Note"
+      "id": "53b12c51-7120-4826-b7e4-f0fe197fd8dd",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize an incoming alert into a stable incident object.\nconst body = $input.first().json.body ?? {};\n\nconst service = String(body.service ?? 'unknown').trim().toLowerCase();\nconst level   = String(body.level   ?? 'ERROR').trim().toUpperCase();\nconst message = String(body.message ?? '').trim();\n\n// A signature is the message with volatile bits (numbers, hex ids, timestamps)\n// stripped, so \"timeout after 30000ms\" and \"timeout after 12ms\" collapse to one.\nconst signature = message\n  .replace(/\\b[0-9a-f]{8,}\\b/gi, 'ID')   // hex ids / trace ids\n  .replace(/\\d+/g, 'N')                  // any run of digits\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .slice(0, 120);\n\nconst incident = {\n  service,\n  level,\n  message,\n  signature,\n  fingerprint: `${service}:${signature}`,\n  received_at: new Date().toISOString(),\n};\n\nreturn [{ json: incident }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -256
+      ],
+      "id": "fdb9d23a-bd81-4e61-b6dd-e7c702b2d1f4",
+      "name": "normalizer"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        -32
+      ],
+      "id": "5862328a-eb3e-4378-8cfc-aa0222e00fa1",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "xPmmolWpjDif5VO0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Query recent application logs for a given service. Input: a service name string. Returns the most recent log rows (timestamp, level, message) for that service so you can investigate errors.",
+        "operation": "executeQuery",
+        "query": "SELECT ts, level, message, trace_id\n     FROM logs\n     WHERE service = $1\n     ORDER BY ts DESC\n     LIMIT 20;",
+        "options": {
+          "queryReplacement": "=={{ $fromAI(\"service\", \"the service name to query logs for, e.g. checkout-api\", \"string\") }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        32,
+        -32
+      ],
+      "id": "ec8e9023-6f88-4058-8791-a274e50fe02f",
+      "name": "Execute a SQL query in Postgres",
+      "credentials": {
+        "postgres": {
+          "id": "c3dv7XytSKGUUoeY",
+          "name": "AIOPS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b8a330e4-12e5-4e9c-a51c-c348def22821",
+              "name": "triage",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        -256
+      ],
+      "id": "6c98d472-674e-42fb-a539-7c912afbdb3c",
+      "name": "Edit Fields"
     }
   ],
   "pinData": {},
@@ -69,14 +144,58 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript",
+            "node": "normalizer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code in JavaScript": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "normalizer": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query in Postgres": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
       "main": [
         [
           {
@@ -94,8 +213,9 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "72a126c0-dfc5-4cb5-951b-7f690432ff34",
+  "versionId": "703065d2-1287-462a-b040-f358f13c691c",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "1afbc0143798df2d957fbad06d54ee24dc69ed3c9c62e5f822ecb7361beffb24"
   },
   "id": "DCFmjic2F6ahyPOJ",
