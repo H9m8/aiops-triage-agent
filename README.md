@@ -12,8 +12,8 @@ Supabase (Postgres + pgvector) · GitHub Actions.
 _Diagram added in Phase 10._
 
 ## Phase checklist
-- [ ] Phase 0 — Environment & repo
-- [ ] Phase 1 — Cloud database & schema
+- [x] Phase 0 — Environment & repo
+- [x] Phase 1 — Cloud database & schema
 - [x] Phase 2 — Webhook → respond slice
 - [ ] Phase 3 — Tool calling: query logs
 - [ ] Phase 4 — RAG: search runbooks
