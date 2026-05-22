@@ -1,0 +1,103 @@
+{
+  "name": "incident-triage",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "incident",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -432,
+        -112
+      ],
+      "id": "470cbc81-a01a-4612-a711-759f2c833bda",
+      "name": "Webhook",
+      "webhookId": "fff28daa-2c84-4ebf-aba0-647a56452c74"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize an incoming alert into a stable incident object.\nconst body = $input.first().json.body ?? {};\n\nconst service = String(body.service ?? 'unknown').trim().toLowerCase();\nconst level   = String(body.level   ?? 'ERROR').trim().toUpperCase();\nconst message = String(body.message ?? '').trim();\n\n// A signature is the message with volatile bits (numbers, hex ids, timestamps)\n// stripped, so \"timeout after 30000ms\" and \"timeout after 12ms\" collapse to one.\nconst signature = message\n  .replace(/\\b[0-9a-f]{8,}\\b/gi, 'ID')   // hex ids / trace ids\n  .replace(/\\d+/g, 'N')                  // any run of digits\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .slice(0, 120);\n\nconst incident = {\n  service,\n  level,\n  message,\n  signature,\n  fingerprint: `${service}:${signature}`,\n  received_at: new Date().toISOString(),\n};\n\nreturn [{ json: incident }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        -112
+      ],
+      "id": "fdb9d23a-bd81-4e61-b6dd-e7c702b2d1f4",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -16,
+        -112
+      ],
+      "id": "d9235c3f-2b86-4e7b-a22e-41655720d0f3",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "## in bash\ncurl -X POST http://localhost:5678/webhook-test/incident -H \"Content-Type: application/json\" -d \"{\\\"service\\\":\\\"checkout-api\\\",\\\"level\\\":\\\"error\\\",\\\"message\\\":\\\"PaymentGateway timeout after 30000ms\\\"}\"\n##out put should be like:\n#\n{\n  \"service\": \"checkout-api\",\n  \"level\": \"ERROR\",\n  \"message\": \"PaymentGateway timeout after 30000ms\",\n  \"signature\": \"PaymentGateway timeout after Nms\",\n  \"fingerprint\": \"checkout-api:PaymentGateway timeout after Nms\",\n  \"received_at\": \"2026-05-22T...\"\n}\n",
+        "height": 304,
+        "width": 640,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        96
+      ],
+      "id": "cd9a3e7b-e97e-49e6-bfe3-70b3ccbcdda3",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "72a126c0-dfc5-4cb5-951b-7f690432ff34",
+  "meta": {
+    "instanceId": "1afbc0143798df2d957fbad06d54ee24dc69ed3c9c62e5f822ecb7361beffb24"
+  },
+  "id": "DCFmjic2F6ahyPOJ",
+  "tags": []
+}
