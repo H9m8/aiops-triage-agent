@@ -20,7 +20,7 @@ _Diagram added in Phase 10._
 - [x] Phase 5 — Git context tool
 - [x] Phase 6 — Structured output
 - [x] Phase 7 — Memory & recurrence
-- [ ] Phase 8 — Open GitHub issue (gated)
+- [x] Phase 8 — Open GitHub issue (gated)
 - [ ] Phase 9 — CI/CD
 - [ ] Phase 10 — Polish & extras
 
