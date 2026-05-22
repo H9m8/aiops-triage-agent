@@ -19,7 +19,7 @@ _Diagram added in Phase 10._
 - [x] Phase 4 — RAG: search runbooks
 - [x] Phase 5 — Git context tool
 - [x] Phase 6 — Structured output
-- [ ] Phase 7 — Memory & recurrence
+- [x] Phase 7 — Memory & recurrence
 - [ ] Phase 8 — Open GitHub issue (gated)
 - [ ] Phase 9 — CI/CD
 - [ ] Phase 10 — Polish & extras
