@@ -1,5 +1,7 @@
 # AIOps Incident-Triage Agent
 
+![CI](https://github.com/H9m8/aiops-triage-agent/actions/workflows/ci.yml/badge.svg)
+
 An autonomous agent that triages incidents: when a monitoring alert or error
 log fires a webhook, the agent investigates by querying logs, searching
 runbooks via RAG, and checking recent git commits, then drafts a root-cause
