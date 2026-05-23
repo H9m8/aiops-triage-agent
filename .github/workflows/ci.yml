@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test & validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Lint (syntax check)
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Validate workflow JSON is well-formed
+        run: |
+          for f in workflows/*.json; do
+            node -e "JSON.parse(require('fs').readFileSync('$f','utf8')); console.log('valid: $f')"
+          done
+
+      - name: Validate schema.sql is present and non-empty
+        run: |
+          test -s db/schema.sql && echo "schema.sql present"
+          grep -q "create table" db/schema.sql && echo "schema.sql contains table definitions"

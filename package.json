@@ -1,0 +1,10 @@
+{
+  "name": "aiops-triage-agent",
+  "version": "1.0.0",
+  "description": "AIOps incident-triage agent: n8n + OpenAI + Supabase + GitHub Actions",
+  "scripts": {
+    "test": "node --test code/tests/*.test.js",
+    "lint": "node --check code/normalize.js && node --check code/tests/normalize.test.js"
+  },
+  "license": "MIT"
+}
