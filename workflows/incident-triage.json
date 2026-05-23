@@ -316,16 +316,16 @@
           "value": "aiops-triage-agent",
           "mode": "name"
         },
-        "title": "={{ $json.issue_title }}",
-        "body": "={{ $json.issue_body }}",
+        "title": "={{ $('compose-issue').item.json.issue_title }}",
+        "body": "={{ $('compose-issue').item.json.issue_body }}",
         "labels": [],
         "assignees": []
       },
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        720,
-        -256
+        1232,
+        -272
       ],
       "id": "ffee11ac-6673-450e-992f-2e4c7c8a202b",
       "name": "open-issue",
@@ -359,6 +359,73 @@
           "name": "AIOPS"
         }
       }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "husseinmsri6@gmail.com",
+        "subject": "={{ \"Approve incident issue: \" + $('compose-issue').item.json.issue_title }}",
+        "message": "={{ \"The triage agent wants to open this GitHub issue:\\n\\n\" + $('compose-issue').item.json.issue_title + \"\\n\\n\" + $('compose-issue').item.json.issue_body + \"\\n\\nApprove to file it, or Decline to skip.\" }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -256
+      ],
+      "id": "7fdd6538-f128-4757-9fb4-647cabf1c5bb",
+      "name": "approve-issue",
+      "webhookId": "781f2816-4299-455e-9f12-9e091a8904a7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ig4iW5VDopsHxXwc",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "05499d53-5e1f-402c-ac88-86d836b59ba7",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        992,
+        -256
+      ],
+      "id": "e1731238-54f1-4f64-b0f4-a21b4471abed",
+      "name": "approved?"
     }
   ],
   "pinData": {},
@@ -499,7 +566,7 @@
       "main": [
         [
           {
-            "node": "open-issue",
+            "node": "approve-issue",
             "type": "main",
             "index": 0
           }
@@ -527,6 +594,28 @@
           }
         ]
       ]
+    },
+    "approve-issue": {
+      "main": [
+        [
+          {
+            "node": "approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "approved?": {
+      "main": [
+        [
+          {
+            "node": "open-issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -535,7 +624,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "eea565e2-5bca-463d-a7de-97b240b073fb",
+  "versionId": "fe392533-e803-47af-bcde-bbed3447fd31",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1afbc0143798df2d957fbad06d54ee24dc69ed3c9c62e5f822ecb7361beffb24"
